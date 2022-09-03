@@ -56,7 +56,7 @@ func main() {
 
 	wg.Wait()
 	// close(datachan)
-	writeCsv(path, datachan)
+	fn := writeCsv(path, datachan)
 
 	fmt.Print("\n\n")
 	fmt.Println("-- 完了しました --  :", time.Since(start).Seconds())
@@ -128,7 +128,7 @@ func getSizeRecursive(path string) (int64, error) {
 	return size, err
 }
 
-func writeCsv(path string, datachan chan [][]string) {
+func writeCsv(path string, datachan chan [][]string) string {
 	hd, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -152,4 +152,6 @@ func writeCsv(path string, datachan chan [][]string) {
 	if err := w.Error(); err != nil {
 		log.Fatal(err)
 	}
+
+	return fn
 }
