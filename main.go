@@ -18,34 +18,6 @@ import (
 	"golang.org/x/text/transform"
 )
 
-// work
-func work(fi fs.FileInfo, path string) []string {
-	if !fi.IsDir() {
-		return nil
-	}
-	p := filepath.Join(path, fi.Name())
-	size, err := getSizeRecursive(p)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	fmt.Printf("- %s : %d\n", fi.Name(), size)
-	sl := []string{fi.Name(), strconv.FormatInt(size, 10)}
-	return sl
-}
-
-// worker
-func worker(_ int, ch chan fs.FileInfo, wg *sync.WaitGroup, path string, datachan chan [][]string) {
-	for fi := range ch {
-		sl := work(fi, path)
-		if sl != nil {
-			data := <-datachan
-			data = append(data, sl)
-			datachan <- data
-		}
-		wg.Done()
-	}
-}
-
 func main() {
 	datachan := make(chan [][]string, 1)
 	data := [][]string{{"dirName", "size"}}
@@ -102,6 +74,34 @@ func getDirFis(path string) []fs.FileInfo {
 		log.Fatal(err.Error())
 	}
 	return fis
+}
+
+// work
+func work(fi fs.FileInfo, path string) []string {
+	if !fi.IsDir() {
+		return nil
+	}
+	p := filepath.Join(path, fi.Name())
+	size, err := getSizeRecursive(p)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Printf("- %s : %d\n", fi.Name(), size)
+	sl := []string{fi.Name(), strconv.FormatInt(size, 10)}
+	return sl
+}
+
+// worker
+func worker(_ int, ch chan fs.FileInfo, wg *sync.WaitGroup, path string, datachan chan [][]string) {
+	for fi := range ch {
+		sl := work(fi, path)
+		if sl != nil {
+			data := <-datachan
+			data = append(data, sl)
+			datachan <- data
+		}
+		wg.Done()
+	}
 }
 
 func getSizeRecursive(path string) (int64, error) {
