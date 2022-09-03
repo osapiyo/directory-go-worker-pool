@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"io/fs"
@@ -56,7 +57,16 @@ func main() {
 	wg.Wait()
 	// close(datachan)
 	writeCsv(path, datachan)
-	fmt.Println(time.Since(start).Seconds())
+
+	fmt.Print("\n\n")
+	fmt.Println("-- 完了しました --  :", time.Since(start).Seconds())
+	fmt.Print("\n")
+	fmt.Println("-- ダウンロードフォルダにCSVファイルを保存しました --")
+	fmt.Print("\n")
+	fmt.Printf("        %s\n\n", fn)
+	fmt.Println("-- なにかキーを押して終了してください --")
+	scanner2 := bufio.NewScanner(os.Stdin)
+	scanner2.Scan()
 }
 
 func selectFolder() string {
