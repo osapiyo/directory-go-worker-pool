@@ -59,7 +59,7 @@ func main() {
 	fn := writeCsv(path, datachan)
 
 	fmt.Print("\n\n")
-	fmt.Println("-- 完了しました --  :", time.Since(start).Seconds())
+	fmt.Println("-- 完了しました --  :", time.Since(start))
 	fmt.Print("\n")
 	fmt.Println("-- ダウンロードフォルダにCSVファイルを保存しました --")
 	fmt.Print("\n")
