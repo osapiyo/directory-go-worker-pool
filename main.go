@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/csv"
 	"fmt"
+	"io"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/ncruces/zenity"
 	"golang.org/x/text/encoding/japanese"
@@ -128,6 +130,34 @@ func getSizeRecursive(path string) (int64, error) {
 	return size, err
 }
 
+type runeWriter struct {
+	w io.Writer
+}
+
+func (rw *runeWriter) Write(b []byte) (int, error) {
+	var err error
+	l := 0
+
+	for len(b) > 0 {
+		_, n := utf8.DecodeRune(b)
+		if n == 0 {
+			break
+		}
+		_, err = rw.w.Write(b[:n])
+		if err != nil {
+			_, err = rw.w.Write([]byte{'?'})
+			if err != nil {
+				break
+			}
+		}
+		l += n
+		b = b[n:]
+	}
+	return l, err
+}
+
+
+
 func writeCsv(path string, datachan chan [][]string) string {
 	hd, err := os.UserHomeDir()
 	if err != nil {
@@ -142,11 +172,13 @@ func writeCsv(path string, datachan chan [][]string) string {
 	}
 	defer f.Close()
 
-	w := csv.NewWriter(transform.NewWriter(f, japanese.ShiftJIS.NewEncoder()))
+	w := csv.NewWriter(&runeWriter{transform.NewWriter(f, japanese.ShiftJIS.NewEncoder())})
+	w.UseCRLF = true
+
 	data := <-datachan
 	err = w.WriteAll(data)
 	if err != nil {
-		panic(err)
+		log.Fatal(err.Error())
 	}
 	w.Flush()
 	if err := w.Error(); err != nil {
